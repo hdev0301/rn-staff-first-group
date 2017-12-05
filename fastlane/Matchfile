@@ -1,0 +1,9 @@
+git_url "git@gitlab.commutable.com:first/fastlane-certificates.git"
+git_branch "master"
+
+type "appstore" # The default type, can be: appstore, adhoc or development
+
+app_identifier "com.commutable.firstgroupstaff"
+username "ross@commutable.com" # Your Apple Developer Portal username
+
+# For all available options run `match --help`

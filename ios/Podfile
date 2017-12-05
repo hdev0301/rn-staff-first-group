@@ -1,0 +1,7 @@
+target 'FirstStudent' do
+  pod 'OneSignal', '1.13.3'
+  pod 'FBSDKCoreKit', '4.14.0'
+  pod 'FBSDKLoginKit', '4.14.0'
+  pod 'FBSDKShareKit', '4.14.0'
+  pod 'GoogleSignIn', '3.0.0'
+end

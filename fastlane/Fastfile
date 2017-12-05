@@ -1,0 +1,108 @@
+# Customise this file, documentation can be found here:
+# https://github.com/fastlane/fastlane/tree/master/docs
+# All available actions: https://github.com/fastlane/fastlane/blob/master/fastlane/docs/Actions.md
+# can also be listed using the `fastlane actions` command
+
+# This is the minimum version number required.
+# Update this, if you use features of a newer version
+fastlane_version "2.9.0"
+
+platform :ios do
+  before_all do
+    ENV["SLACK_URL"] = "https://hooks.slack.com/services/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"
+    @username = "ross@commutable.com"
+    @team_name = ""
+    @codesigning_identity = ""
+  end
+
+  def build_ios_app
+    if @codesigning_identity.to_s == ""
+      match(
+        type: "appstore",
+        team_name: @team_name
+      )
+      gym(
+        scheme: "FirstStudent",
+        workspace: "./ios/FirstStudent.xcworkspace"
+      )
+    else
+      gym(
+        scheme: "FirstStudent",
+        codesigning_identity: @codesigning_identity,
+        workspace: "./ios/FirstStudent.xcworkspace"
+      )
+    end
+  end
+
+  desc "Build IPA file"
+  lane :build do
+    build_ios_app
+  end
+
+  desc "Submit a new Build to Apple TestFlight"
+  lane :deploy do
+    answer = UI.select("Would you like to add a Changelog?", ["Yes", "No"])
+    changelog = ask('Type Changelog message:') if answer == "Yes"
+
+    build_ios_app 
+
+    if changelog
+      pilot(
+        skip_waiting_for_build_processing: true,
+        username: @username
+      )
+    else
+      pilot(
+        skip_waiting_for_build_processing: true,
+        username: @username,
+        changelog: changelog
+      )
+    end
+
+    sh "fastlane pilot list -u #{@username}"
+
+    slack(
+      message: "App successfully released",
+      channel: "first-student"
+    )
+  end
+end
+
+platform :android do
+  before_all do
+    ENV["SLACK_URL"] = "https://hooks.slack.com/services/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"
+  end
+
+  desc "Submit a new Build to Google Play Store"
+  lane :deploy do
+    gradle(
+      task: "clean",
+      project_dir: "android/"
+    )
+
+    gradle(
+      task: "assemble",
+      build_type: "Release",
+      project_dir: "android/"
+    )
+
+    supply(
+      track: "alpha",
+      apk: "android/app/build/outputs/apk/app-release.apk",
+      skip_upload_metadata: true,
+      skip_upload_images: true,
+      skip_upload_screenshots: true
+    )
+
+    slack(
+      message: "App successfully released",
+      channel: "first-student"
+    )
+  end
+end
+
+# More information about multiple platforms in fastlane: https://github.com/fastlane/fastlane/blob/master/docs/Platforms.md
+# All available actions: https://github.com/fastlane/fastlane/blob/master/fastlane/docs/Actions.md
+
+# fastlane reports which actions are used
+# No personal data is recorded. Learn more at https://github.com/fastlane/enhancer
